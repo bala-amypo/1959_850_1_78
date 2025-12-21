@@ -1,5 +1,8 @@
-package com.example.pro.controller;
+package com.example.demo.controller;
 
+import org.springframework.stereotype.Controller;
+
+@Controller
 public class AuthController {
 
 }
