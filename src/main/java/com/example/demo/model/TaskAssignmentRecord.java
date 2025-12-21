@@ -28,7 +28,7 @@ public class TaskAssignmentRecord {
     private String status;
 
     @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<AssignmentEvalutionRecord> evaluations;
+    private List<AssignmentEvaluationRecord> evaluations;
 
     public TaskAssignmentRecord() {}
 
@@ -50,6 +50,6 @@ public class TaskAssignmentRecord {
     public void setVolunteer(VolunteerProfile volunteer) { this.volunteer = volunteer; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    public List<AssignmentEvalutionRecord> getEvaluations() { return evaluations; }
-    public void setEvaluations(List<AssignmentEvalutionRecord> evaluations) { this.evaluations = evaluations; }
+    public List<AssignmentEvaluationRecord> getEvaluations() { return evaluations; }
+    public void setEvaluations(List<AssignmentEvaluationRecord> evaluations) { this.evaluations = evaluations; }
 }
