@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "assignment_evaluation_records")
-public class AssignmentEvalutionRecord {
+public class AssignmentEvaluationRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,9 +21,9 @@ public class AssignmentEvalutionRecord {
 
     private String comments;
 
-    public AssignmentEvalutionRecord() {}
+    public AssignmentEvaluationRecord() {}
 
-    public AssignmentEvalutionRecord(Long assignmentId, Integer rating, String comments) {
+    public AssignmentEvaluationRecord(Long assignmentId, Integer rating, String comments) {
         this.assignmentId = assignmentId;
         this.rating = rating;
         this.comments = comments;

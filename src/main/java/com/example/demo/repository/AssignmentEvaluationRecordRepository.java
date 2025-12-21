@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import com.example.demo.model.AssignmentEvalutionRecord;
 
 @Repository
-public interface AssignmentEvalutionRecordRepository extends JpaRepository<AssignmentEvalutionRecord, Long> {
+public interface AssignmentEvaluationRecordRepository extends JpaRepository<AssignmentEvalutionRecord, Long> {
 }

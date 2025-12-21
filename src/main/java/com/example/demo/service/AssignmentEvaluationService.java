@@ -1,5 +1,5 @@
 package com.example.demo.service;
 
-public interface AssignmentEvalutionService {
+public interface AssignmentEvaluationService {
 
 }
