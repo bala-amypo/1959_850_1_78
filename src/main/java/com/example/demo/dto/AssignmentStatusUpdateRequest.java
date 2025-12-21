@@ -2,6 +2,6 @@ package com.example.demo.dto;
 
 
 
-public class assignmentStatusUpdateRequest {
+public class AssignmentStatusUpdateRequest {
 
 }

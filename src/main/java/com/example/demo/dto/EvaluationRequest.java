@@ -1,6 +1,6 @@
 package com.example.demo.dto;
 
-public class EvalutionRequest {
+public class EvaluationRequest {
     private Long assignmentId;
     private Integer rating;
     private String comments;
