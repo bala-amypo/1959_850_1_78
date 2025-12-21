@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.model.AssignmentEvaluationRecord;
 import com.example.demo.repository.AssignmentEvaluationRecordRepository;
-import com.example.demo.dto.EvalutionRequest;
+import com.example.demo.dto.EvaluationRequest;
 
 @RestController
 @RequestMapping("/evaluations")
@@ -13,7 +13,7 @@ public class AssignmentEvaluationController {
     AssignmentEvaluationRecordRepository repository;
     
     @PostMapping
-    public AssignmentEvaluationRecord create(@RequestBody EvalutionRequest request) {
+    public AssignmentEvaluationRecord create(@RequestBody EvaluationRequest request) {
         AssignmentEvaluationRecord evaluation = new AssignmentEvaluationRecord();
         evaluation.setAssignmentId(request.getAssignmentId());
         evaluation.setRating(request.getRating());
