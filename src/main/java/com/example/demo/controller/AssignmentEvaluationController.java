@@ -1,23 +1,29 @@
 package com.example.demo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import com.example.demo.model.AssignmentEvaluationRecord;
-import com.example.demo.repository.AssignmentEvaluationRecordRepository;
 import com.example.demo.dto.EvaluationRequest;
+import com.example.demo.model.AssignmentEvaluationRecord;
+import com.example.demo.service.AssignmentEvaluationService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/evaluations")
 public class AssignmentEvaluationController {
-    @Autowired
-    AssignmentEvaluationRecordRepository repository;
+    
+    private final AssignmentEvaluationService assignmentEvaluationService;
+    
+    public AssignmentEvaluationController(AssignmentEvaluationService assignmentEvaluationService) {
+        this.assignmentEvaluationService = assignmentEvaluationService;
+    }
     
     @PostMapping
-    public AssignmentEvaluationRecord create(@RequestBody EvaluationRequest request) {
-        AssignmentEvaluationRecord evaluation = new AssignmentEvaluationRecord();
-        evaluation.setAssignmentId(request.getAssignmentId());
-        evaluation.setRating(request.getRating());
-        evaluation.setComments(request.getComments());
-        return repository.save(evaluation);
+    public ResponseEntity<AssignmentEvaluationRecord> evaluateAssignment(@RequestBody EvaluationRequest request) {
+        AssignmentEvaluationRecord evaluation = new AssignmentEvaluationRecord(
+            request.getAssignmentId(), 
+            request.getRating(), 
+            request.getComments()
+        );
+        AssignmentEvaluationRecord savedEvaluation = assignmentEvaluationService.evaluateAssignment(evaluation);
+        return ResponseEntity.ok(savedEvaluation);
     }
 }
