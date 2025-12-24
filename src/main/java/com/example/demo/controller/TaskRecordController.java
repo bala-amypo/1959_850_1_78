@@ -1,49 +1,33 @@
 package com.example.demo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import com.example.demo.model.TaskRecord;
 import com.example.demo.model.TaskAssignmentRecord;
-import com.example.demo.repository.TaskRecordRepository;
-import com.example.demo.repository.TaskAssignmentRecordRepository;
-import com.example.demo.exception.BadRequestException;
-import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.TaskRecord;
+import com.example.demo.service.TaskAssignmentService;
+import com.example.demo.service.TaskRecordService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/tasks")
 public class TaskRecordController {
-    @Autowired
-    TaskRecordRepository repository;
     
-    @Autowired
-    TaskAssignmentRecordRepository assignmentRepository;
+    private final TaskRecordService taskRecordService;
+    private final TaskAssignmentService taskAssignmentService;
+    
+    public TaskRecordController(TaskRecordService taskRecordService, TaskAssignmentService taskAssignmentService) {
+        this.taskRecordService = taskRecordService;
+        this.taskAssignmentService = taskAssignmentService;
+    }
     
     @PostMapping
-    public TaskRecord create(@RequestBody TaskRecord task) {
-        if (task.getRequiredSkill() == null || task.getRequiredSkillLevel() == null) {
-            throw new BadRequestException("Required skill and skill level must not be null");
-        }
-        task.setStatus("OPEN");
-        return repository.save(task);
+    public ResponseEntity<TaskRecord> createTask(@RequestBody TaskRecord task) {
+        TaskRecord createdTask = taskRecordService.createTask(task);
+        return ResponseEntity.ok(createdTask);
     }
     
     @PostMapping("/{taskId}/assign")
-    public TaskAssignmentRecord assignTask(@PathVariable Long taskId) {
-        TaskRecord task = repository.findById(taskId)
-            .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-        
-        if (assignmentRepository.existsByTaskIdAndStatus(taskId, "ACTIVE")) {
-            throw new BadRequestException("Task already has an ACTIVE assignment");
-        }
-        
-        TaskAssignmentRecord assignment = new TaskAssignmentRecord();
-        assignment.setTaskId(taskId);
-        assignment.setVolunteerId(1L);
-        assignment.setStatus("ACTIVE");
-        
-        task.setStatus("ACTIVE");
-        repository.save(task);
-        
-        return assignmentRepository.save(assignment);
+    public ResponseEntity<TaskAssignmentRecord> assignTask(@PathVariable Long taskId) {
+        TaskAssignmentRecord assignment = taskAssignmentService.assignTask(taskId);
+        return ResponseEntity.ok(assignment);
     }
 }

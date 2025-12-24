@@ -1,35 +1,33 @@
 package com.example.demo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import com.example.demo.model.VolunteerProfile;
-import com.example.demo.repository.VolunteerProfileRepository;
 import com.example.demo.dto.AvailabilityUpdateRequest;
-import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.exception.BadRequestException;
+import com.example.demo.dto.RegisterRequest;
+import com.example.demo.model.VolunteerProfile;
+import com.example.demo.service.VolunteerProfileService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/volunteers")
 public class VolunteerProfileController {
-    @Autowired
-    VolunteerProfileRepository repository;
+    
+    private final VolunteerProfileService volunteerProfileService;
+    
+    public VolunteerProfileController(VolunteerProfileService volunteerProfileService) {
+        this.volunteerProfileService = volunteerProfileService;
+    }
     
     @PostMapping
-    public VolunteerProfile create(@RequestBody VolunteerProfile volunteer) {
-        return repository.save(volunteer);
+    public ResponseEntity<VolunteerProfile> registerVolunteer(@RequestBody RegisterRequest request) {
+        VolunteerProfile volunteer = volunteerProfileService.registerVolunteer(request);
+        return ResponseEntity.ok(volunteer);
     }
     
     @PatchMapping("/{id}/availability")
-    public VolunteerProfile updateAvailability(@PathVariable Long id, @RequestBody AvailabilityUpdateRequest request) {
-        VolunteerProfile volunteer = repository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Volunteer not found"));
-        
-        String status = request.getAvailabilityStatus();
-        if (!"AVAILABLE".equals(status) && !"UNAVAILABLE".equals(status)) {
-            throw new BadRequestException("Availability status must be AVAILABLE or UNAVAILABLE");
-        }
-        
-        volunteer.setAvailabilityStatus(status);
-        return repository.save(volunteer);
+    public ResponseEntity<VolunteerProfile> updateAvailability(
+            @PathVariable Long id, 
+            @RequestBody AvailabilityUpdateRequest request) {
+        VolunteerProfile volunteer = volunteerProfileService.updateAvailability(id, request.getAvailabilityStatus());
+        return ResponseEntity.ok(volunteer);
     }
 }
