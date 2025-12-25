@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.dto.EvaluationRequest;
 import com.example.demo.model.AssignmentEvaluationRecord;
 import com.example.demo.service.AssignmentEvaluationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/evaluations")
 public class AssignmentEvaluationController {
     
+    private static final Logger logger = LoggerFactory.getLogger(AssignmentEvaluationController.class);
     private final AssignmentEvaluationService assignmentEvaluationService;
     
     public AssignmentEvaluationController(AssignmentEvaluationService assignmentEvaluationService) {
@@ -18,12 +21,27 @@ public class AssignmentEvaluationController {
     
     @PostMapping
     public ResponseEntity<AssignmentEvaluationRecord> evaluateAssignment(@RequestBody EvaluationRequest request) {
-        AssignmentEvaluationRecord evaluation = new AssignmentEvaluationRecord(
-            request.getAssignmentId(), 
-            request.getRating(), 
-            request.getComments()
-        );
-        AssignmentEvaluationRecord savedEvaluation = assignmentEvaluationService.evaluateAssignment(evaluation);
-        return ResponseEntity.ok(savedEvaluation);
+        try {
+            if (request == null) {
+                logger.warn("Evaluation request is null");
+                return ResponseEntity.badRequest().build();
+            }
+            AssignmentEvaluationRecord evaluation = new AssignmentEvaluationRecord(
+                request.getAssignmentId(), 
+                request.getRating(), 
+                request.getComments()
+            );
+            AssignmentEvaluationRecord savedEvaluation = assignmentEvaluationService.evaluateAssignment(evaluation);
+            return ResponseEntity.ok(savedEvaluation);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid argument for assignment evaluation: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            logger.error("Runtime error during assignment evaluation: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        } catch (Exception e) {
+            logger.error("Unexpected error during assignment evaluation: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

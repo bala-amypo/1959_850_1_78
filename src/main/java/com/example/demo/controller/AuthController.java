@@ -3,35 +3,78 @@ package com.example.demo.controller;
 import com.example.demo.dto.AuthRequest;
 import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.RegisterRequest;
+import com.example.demo.model.User;
 import com.example.demo.model.VolunteerProfile;
 import com.example.demo.security.JwtTokenProvider;
+import com.example.demo.service.UserService;
 import com.example.demo.service.VolunteerProfileService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final VolunteerProfileService volunteerProfileService;
+    private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
     
-    public AuthController(VolunteerProfileService volunteerProfileService, 
-                         JwtTokenProvider jwtTokenProvider) {
+    public AuthController(VolunteerProfileService volunteerProfileService,
+                         UserService userService,
+                         JwtTokenProvider jwtTokenProvider,
+                         AuthenticationManager authenticationManager) {
         this.volunteerProfileService = volunteerProfileService;
+        this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.authenticationManager = authenticationManager;
     }
     
     @PostMapping("/register")
     public ResponseEntity<VolunteerProfile> register(@RequestBody RegisterRequest request) {
-        VolunteerProfile volunteer = volunteerProfileService.registerVolunteer(request);
-        return ResponseEntity.ok(volunteer);
+        try {
+            VolunteerProfile volunteer = volunteerProfileService.registerVolunteer(request);
+            userService.createUser(request.getEmail(), request.getPassword(), "USER");
+            return ResponseEntity.ok(volunteer);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        String token = jwtTokenProvider.generateToken(request.getEmail(), "USER");
-        AuthResponse response = new AuthResponse(token, 1L, "USER");
-        return ResponseEntity.ok(response);
+        try {
+            if (request == null || request.getEmail() == null || request.getPassword() == null) {
+                logger.warn("Invalid login request: missing email or password");
+                return ResponseEntity.badRequest().build();
+            }
+            
+            String email = request.getEmail();
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, request.getPassword())
+            );
+            
+            User user = userService.findByEmail(email);
+            String token = jwtTokenProvider.generateToken(email, user.getRole());
+            return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getRole()));
+        } catch (BadCredentialsException e) {
+            logger.error("Authentication failed for user: {}", request.getEmail());
+            return ResponseEntity.status(401).build();
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid argument during login: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            logger.error("Runtime error during login: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        } catch (Exception e) {
+            logger.error("Unexpected error during login: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
