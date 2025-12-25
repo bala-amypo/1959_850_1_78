@@ -1,5 +1,8 @@
 package com.example.demo.service;
 
-public interface UserService {
+import com.example.demo.model.User;
 
+public interface UserService {
+    User createUser(String email, String password, String role);
+    User findByEmail(String email);
 }

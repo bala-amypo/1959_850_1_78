@@ -1,5 +1,8 @@
 package com.example.demo.service;
 
-public interface TaskRecordService {
+import com.example.demo.model.TaskRecord;
 
+public interface TaskRecordService {
+    TaskRecord createTask(TaskRecord task);
+    TaskRecord getTaskById(Long id);
 }
