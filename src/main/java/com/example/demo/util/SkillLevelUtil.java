@@ -1,17 +1,21 @@
 package com.example.demo.util;
 
 public class SkillLevelUtil {
-    public static boolean isSkillLevelSufficient(String actualLevel, String requiredLevel) {
-        int actualRank = getLevelRank(actualLevel);
-        int requiredRank = getLevelRank(requiredLevel);
-        return actualRank >= requiredRank;
-    }
     
-    private static int getLevelRank(String level) {
-        switch (level.toUpperCase()) {
+    public static int levelRank(String level) {
+        switch (level) {
             case "BEGINNER": return 1;
             case "INTERMEDIATE": return 2;
             case "EXPERT": return 3;
+            default: return 0;
+        }
+    }
+    
+    public static int priorityRank(String priority) {
+        switch (priority) {
+            case "LOW": return 1;
+            case "MEDIUM": return 2;
+            case "HIGH": return 3;
             default: return 0;
         }
     }
