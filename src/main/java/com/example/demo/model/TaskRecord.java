@@ -9,10 +9,13 @@ public class TaskRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    private String taskCode;
+    private String taskName;
     private String title;
     private String description;
     private String requiredSkill;
     private String requiredSkillLevel;
+    private String priority;
     private String status;
     
     public TaskRecord() {}
@@ -28,6 +31,12 @@ public class TaskRecord {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
+    public String getTaskCode() { return taskCode; }
+    public void setTaskCode(String taskCode) { this.taskCode = taskCode; }
+    
+    public String getTaskName() { return taskName; }
+    public void setTaskName(String taskName) { this.taskName = taskName; }
+    
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     
@@ -39,6 +48,9 @@ public class TaskRecord {
     
     public String getRequiredSkillLevel() { return requiredSkillLevel; }
     public void setRequiredSkillLevel(String requiredSkillLevel) { this.requiredSkillLevel = requiredSkillLevel; }
+    
+    public String getPriority() { return priority; }
+    public void setPriority(String priority) { this.priority = priority; }
     
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

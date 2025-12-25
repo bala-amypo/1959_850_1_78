@@ -8,6 +8,15 @@ public class AuthResponse {
     public AuthResponse() {}
     
     public AuthResponse(String token, Long userId, String role) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Token cannot be null or empty");
+        }
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("User ID must be positive");
+        }
+        if (role == null || role.trim().isEmpty()) {
+            throw new IllegalArgumentException("Role cannot be null or empty");
+        }
         this.token = token;
         this.userId = userId;
         this.role = role;

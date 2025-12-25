@@ -5,16 +5,14 @@ public class RegisterRequest {
     private String email;
     private String password;
     private String role;
-    private String availabilityStatus;
     
     public RegisterRequest() {}
     
-    public RegisterRequest(String name, String email, String password, String role, String availabilityStatus) {
+    public RegisterRequest(String name, String email, String password, String role) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
-        this.availabilityStatus = availabilityStatus;
     }
     
     public String getName() { return name; }
@@ -28,7 +26,4 @@ public class RegisterRequest {
     
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
-    
-    public String getAvailabilityStatus() { return availabilityStatus; }
-    public void setAvailabilityStatus(String availabilityStatus) { this.availabilityStatus = availabilityStatus; }
 }
