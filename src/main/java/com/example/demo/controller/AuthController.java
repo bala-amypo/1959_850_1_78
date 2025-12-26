@@ -39,6 +39,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<VolunteerProfile> register(@RequestBody RegisterRequest request) {
         try {
+            // Check if email already exists
+            if (userService.findByEmail(request.getEmail()) != null) {
+                logger.error("User already exists: {}", request.getEmail());
+                return ResponseEntity.badRequest().build();
+            }
+            
             // Create user first
             User user = userService.createUser(request.getEmail(), request.getPassword(), request.getRole());
             logger.info("User created successfully with ID: {}", user.getId());
