@@ -39,23 +39,19 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<VolunteerProfile> register(@RequestBody RegisterRequest request) {
         try {
-            // Check if email already exists
             if (userService.findByEmail(request.getEmail()) != null) {
                 logger.error("User already exists: {}", request.getEmail());
                 return ResponseEntity.badRequest().build();
             }
             
-            // Create user first
-            User user = userService.createUser(request.getEmail(), request.getPassword(), request.getRole());
-            logger.info("User created successfully with ID: {}", user.getId());
-            
-            // Then create volunteer profile
+            // Create user and profile
+            userService.createUser(request.getEmail(), request.getPassword(), request.getRole());
             VolunteerProfile volunteer = volunteerProfileService.registerVolunteer(request);
-            logger.info("Volunteer profile created successfully with ID: {}", volunteer.getId());
             
+            logger.info("Registration successful for: {}", request.getEmail());
             return ResponseEntity.ok(volunteer);
         } catch (Exception e) {
-            logger.error("Registration failed: {}", e.getMessage(), e);
+            logger.error("Registration failed: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -63,39 +59,22 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         try {
-            if (request == null || request.getEmail() == null || request.getPassword() == null) {
-                logger.warn("Invalid login request: missing email or password");
-                return ResponseEntity.badRequest().build();
-            }
-            
-            String email = request.getEmail();
-            logger.info("Attempting login for user: {}", email);
-            
-            // Check if user exists
-            User user = userService.findByEmail(email);
-            if (user == null) {
-                logger.error("User not found in database: {}", email);
-                return ResponseEntity.status(401).build();
-            }
-            logger.info("User found in database: {}", email);
-            
+            // Authenticate using the manager defined in SecurityConfig
             authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
-            
-            String token = jwtTokenProvider.generateToken(email, user.getRole());
-            return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getRole()));
+
+            // Fetch user to generate JWT token
+            User user = userService.findByEmail(request.getEmail());
+            String token = jwtTokenProvider.createToken(user.getEmail(), user.getRole());
+
+            logger.info("User logged in: {}", user.getEmail());
+            return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), user.getRole()));
         } catch (BadCredentialsException e) {
-            logger.error("Authentication failed for user: {}", request.getEmail());
+            logger.error("Invalid login attempt: {}", request.getEmail());
             return ResponseEntity.status(401).build();
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid argument during login: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Runtime error during login: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
         } catch (Exception e) {
-            logger.error("Unexpected error during login: {}", e.getMessage());
+            logger.error("Login error: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
