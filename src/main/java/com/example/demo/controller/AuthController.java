@@ -40,12 +40,16 @@ public class AuthController {
     public ResponseEntity<VolunteerProfile> register(@RequestBody RegisterRequest request) {
         try {
             // Create user first
-            userService.createUser(request.getEmail(), request.getPassword(), request.getRole());
+            User user = userService.createUser(request.getEmail(), request.getPassword(), request.getRole());
+            logger.info("User created successfully with ID: {}", user.getId());
+            
             // Then create volunteer profile
             VolunteerProfile volunteer = volunteerProfileService.registerVolunteer(request);
+            logger.info("Volunteer profile created successfully with ID: {}", volunteer.getId());
+            
             return ResponseEntity.ok(volunteer);
         } catch (Exception e) {
-            logger.error("Registration failed: {}", e.getMessage());
+            logger.error("Registration failed: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -59,11 +63,20 @@ public class AuthController {
             }
             
             String email = request.getEmail();
+            logger.info("Attempting login for user: {}", email);
+            
+            // Check if user exists
+            User user = userService.findByEmail(email);
+            if (user == null) {
+                logger.error("User not found in database: {}", email);
+                return ResponseEntity.status(401).build();
+            }
+            logger.info("User found in database: {}", email);
+            
             authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, request.getPassword())
             );
             
-            User user = userService.findByEmail(email);
             String token = jwtTokenProvider.generateToken(email, user.getRole());
             return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getRole()));
         } catch (BadCredentialsException e) {
