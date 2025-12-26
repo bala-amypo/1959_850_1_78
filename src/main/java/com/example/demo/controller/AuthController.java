@@ -39,10 +39,13 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<VolunteerProfile> register(@RequestBody RegisterRequest request) {
         try {
+            // Create user first
+            userService.createUser(request.getEmail(), request.getPassword(), request.getRole());
+            // Then create volunteer profile
             VolunteerProfile volunteer = volunteerProfileService.registerVolunteer(request);
-            userService.createUser(request.getEmail(), request.getPassword(), "USER");
             return ResponseEntity.ok(volunteer);
         } catch (Exception e) {
+            logger.error("Registration failed: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
