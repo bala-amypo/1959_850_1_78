@@ -1,45 +1,34 @@
 package com.example.demo.security;
 
+import com.example.demo.service.UserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     
-    private final Map<String, Map<String, Object>> users = new HashMap<>();
-    private final AtomicLong userIdCounter = new AtomicLong(1);
+    private final UserService userService;
+    
+    public CustomUserDetailsService(@Lazy UserService userService) {
+        this.userService = userService;
+    }
     
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Map<String, Object> user = users.get(email);
+        com.example.demo.model.User user = userService.findByEmail(email);
         if (user == null) {
             throw new UsernameNotFoundException("User not found: " + email);
         }
         
         return User.builder()
             .username(email)
-            .password((String) user.get("password"))
+            .password(user.getPassword())
             .authorities(Collections.emptyList())
             .build();
-    }
-    
-    public Map<String, Object> registerUser(String name, String email, String password, String role) {
-        Long userId = userIdCounter.getAndIncrement();
-        Map<String, Object> user = new HashMap<>();
-        user.put("userId", userId);
-        user.put("name", name);
-        user.put("email", email);
-        user.put("password", password);
-        user.put("role", role);
-        
-        users.put(email, user);
-        return user;
     }
 }
