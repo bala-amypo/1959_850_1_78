@@ -5,6 +5,8 @@ import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.model.User;
 import com.example.demo.model.VolunteerProfile;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.VolunteerProfileRepository;
 import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.service.UserService;
 import com.example.demo.service.VolunteerProfileService;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,38 +28,47 @@ public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final VolunteerProfileRepository volunteerProfileRepository;
+    private final PasswordEncoder passwordEncoder;
     
     public AuthController(VolunteerProfileService volunteerProfileService,
                          UserService userService,
                          JwtTokenProvider jwtTokenProvider,
-                         AuthenticationManager authenticationManager) {
+                         AuthenticationManager authenticationManager,
+                         UserRepository userRepository,
+                         VolunteerProfileRepository volunteerProfileRepository,
+                         PasswordEncoder passwordEncoder) {
         this.volunteerProfileService = volunteerProfileService;
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.volunteerProfileRepository = volunteerProfileRepository;
+        this.passwordEncoder = passwordEncoder;
     }
     
     @PostMapping("/register")
-    public ResponseEntity<VolunteerProfile> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            // Check if email already exists
-            if (userService.findByEmail(request.getEmail()) != null) {
-                logger.error("User already exists: {}", request.getEmail());
-                return ResponseEntity.badRequest().build();
-            }
+            // Create and save user
+            User user = new User();
+            user.setEmail(request.getEmail());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setRole(request.getRole());
+            User savedUser = userRepository.save(user);
             
-            // Create user first
-            User user = userService.createUser(request.getEmail(), request.getPassword(), request.getRole());
-            logger.info("User created successfully with ID: {}", user.getId());
+            // Create volunteer profile
+            VolunteerProfile volunteer = new VolunteerProfile();
+            volunteer.setName(request.getName());
+            volunteer.setEmail(request.getEmail());
+            volunteer.setAvailabilityStatus("AVAILABLE");
+            VolunteerProfile savedVolunteer = volunteerProfileRepository.save(volunteer);
             
-            // Then create volunteer profile
-            VolunteerProfile volunteer = volunteerProfileService.registerVolunteer(request);
-            logger.info("Volunteer profile created successfully with ID: {}", volunteer.getId());
-            
-            return ResponseEntity.ok(volunteer);
+            return ResponseEntity.ok(savedVolunteer);
         } catch (Exception e) {
-            logger.error("Registration failed: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().build();
+            logger.error("Registration failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
         }
     }
     
