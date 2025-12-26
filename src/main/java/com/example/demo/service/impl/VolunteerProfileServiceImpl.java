@@ -21,7 +21,12 @@ public class VolunteerProfileServiceImpl implements VolunteerProfileService {
     
     @Override
     public VolunteerProfile registerVolunteer(RegisterRequest request) {
+        if (volunteerProfileRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email already exists");
+        }
+        
         VolunteerProfile profile = new VolunteerProfile();
+        profile.setName(request.getName());
         profile.setFullName(request.getName());
         profile.setEmail(request.getEmail());
         profile.setAvailabilityStatus("AVAILABLE");
